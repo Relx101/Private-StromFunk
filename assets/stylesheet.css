@@ -1,0 +1,42 @@
+body {
+	font-size: 1.5em;
+	line-height: 1.6;
+	font-weight: 400;
+	color: #222;
+	background-color: lightblue;
+}
+
+.Hauptdiv {
+	column-count: 1;
+	width: 80%;
+	margin: 0 auto;
+}
+
+.Achsenwahlfeld_links {
+	width: 300px;
+	float: left;
+}
+
+.Achsenwahlfeld_rechts {
+	width: 300px;
+	float: right;
+}
+
+.PrimaerGraph {
+	margin-top: 150px;
+}
+
+.Setupflaechen {
+	column-count: 5;
+}
+
+.Steuerflaechen {
+	margin-top: 30px;
+	margin-bottom: 30px;
+	column-count: 3;
+}
+
+.Tabelle {
+	width: 	50%;
+	margin: 0 auto;
+}

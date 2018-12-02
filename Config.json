@@ -1,0 +1,26 @@
+{
+    "setup_u_step": 205.0,
+    "setup_u_start": [
+        10.7,
+        10.7,
+        10.7
+    ],
+    "setup_u_ratio": 150.5,
+    "setup_i_ratio": [
+        500,
+        500,
+        300
+    ],
+    "setup_u_max": 250,
+    "setup_i_max": 2000,
+    "control_i_target": [
+        500.0,
+        400,
+        501.0
+    ],
+    "control_i_delta": [
+        5,
+        5.0,
+        5
+    ]
+}
