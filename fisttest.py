@@ -15,53 +15,79 @@ with open('Config.json') as f:
 
 db = sqlite3.connect("./hochstrom.db")
 INITqery = pd.read_sql_query("select * from abcdefabcdef;", db)
+db.close()
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
 app.layout = html.Div([
-
-    # Configfelder
     html.Div([
-        html.Label('setup_u_step'),
-        dcc.Input(value=jsondata['setup_u_step'], type='number', id='setup_u_step'),
-        html.Label('setup_u_start 1'),
-        dcc.Input(value=jsondata['setup_u_start'][0], type='number', id='setup_u_start0'),
-        html.Label('setup_u_start 2'),
-        dcc.Input(value=jsondata['setup_u_start'][1], type='number', id='setup_u_start1'),
-        html.Label('setup_u_start 3'),
-        dcc.Input(value=jsondata['setup_u_start'][2], type='number', id='setup_u_start2'),
-        html.Label('setup_u_ratio '),
-        dcc.Input(value=jsondata['setup_u_ratio'], type='number', id='setup_u_ratio'),
-        html.Label('setup_i_ratio 1'),
-        dcc.Input(value=jsondata['setup_i_ratio'][0], type='number', id='setup_i_ratio0'),
-        html.Label('setup_i_ratio 2'),
-        dcc.Input(value=jsondata['setup_i_ratio'][1], type='number', id='setup_i_ratio1'),
-        html.Label('setup_i_ratio 3'),
-        dcc.Input(value=jsondata['setup_i_ratio'][2], type='number', id='setup_i_ratio2'),
-        html.Label('setup u_max'),
-        dcc.Input(value=jsondata['setup_u_max'], type='number', id='setup_u_max'),
-        html.Label('setup i_max'),
-        dcc.Input(value=jsondata['setup_i_max'], type='number', id='setup_i_max'),
-    ], className='Setupflaechen'),
-    html.Div([
-        html.Label('control_i_target 1'),
-        dcc.Input(value=jsondata['control_i_target'][0], type='number', id='control_i_target0'),
-        html.Label('control_i_target  2'),
-        dcc.Input(value=jsondata['control_i_target'][1], type='number', id='control_i_target1'),
-        html.Label('control_i_target  3'),
-        dcc.Input(value=jsondata['control_i_target'][2], type='number', id='control_i_target2'),
-        html.Label('control_i_delta  1'),
-        dcc.Input(value=jsondata['control_i_delta'][0], type='number', id='control_i_delta0'),
-        html.Label('control_i_delta 2'),
-        dcc.Input(value=jsondata['control_i_delta'][1], type='number', id='control_i_delta1'),
-        html.Label('control_i_delta 3'),
-        dcc.Input(value=jsondata['control_i_delta'][2], type='number', id='control_i_delta2'),
+        dcc.Link(html.Img(src='http://www.theta-dresden.de/index_html_files/395.jpg', className='Bildrechts'), href='http://www.theta-dresden.de/', style={'float': 'right'}),
+        html.H1('Hochstromregelung')
+    ], className='Titeldiv'),
 
-    ], className='Steuerflaechen'),
+    html.Div([
+        html.H2('Setup', style={'clear': 'both'}),
+        # Configfelder
+        html.Div([
+
+            html.Div([
+                html.H5('Startspannung'),
+                html.Label('L1 Spannung [V]'),
+                dcc.Input(value=jsondata['setup_u_start'][0], type='number', id='setup_u_start0'),
+                html.Label('L2 Spannung [V]'),
+                dcc.Input(value=jsondata['setup_u_start'][1], type='number', id='setup_u_start1'),
+                html.Label('L3 Spannung [V]'),
+                dcc.Input(value=jsondata['setup_u_start'][2], type='number', id='setup_u_start2'),
+            ], className='Setupflaechendreier'),
+            html.Div([
+                html.H5('Strom Verhältnis'),
+                html.Label('L1 '),
+                dcc.Input(value=jsondata['setup_i_ratio'][0], type='number', id='setup_i_ratio0'),
+                html.Label('L2'),
+                dcc.Input(value=jsondata['setup_i_ratio'][1], type='number', id='setup_i_ratio1'),
+                html.Label('L3'),
+                dcc.Input(value=jsondata['setup_i_ratio'][2], type='number', id='setup_i_ratio2'),
+            ], className='Setupflaechendreier'),
+            html.Div([
+                html.Label('Spannung Schrittweite [V]'),
+                dcc.Input(value=jsondata['setup_u_step'], type='number', id='setup_u_step'),
+                html.Label('Spannung Verhältnis '),
+                dcc.Input(value=jsondata['setup_u_ratio'], type='number', id='setup_u_ratio'),
+                html.Label('Maximalspannung [V]'),
+                dcc.Input(value=jsondata['setup_u_max'], type='number', id='setup_u_max'),
+                html.Label('Maximalstrom [A]'),
+                dcc.Input(value=jsondata['setup_i_max'], type='number', id='setup_i_max'),
+            ], className='Setupflaechenvierer'),
+
+        ]),
+        html.H2('Control'),
+        html.Div([
+            html.Div([
+                html.H5('Strom soll'),
+                html.Label('L1 [A]'),
+                dcc.Input(value=jsondata['control_i_target'][0], type='number', id='control_i_target0'),
+                html.Label('L2 [A]'),
+                dcc.Input(value=jsondata['control_i_target'][1], type='number', id='control_i_target1'),
+                html.Label('L3 [A]'),
+                dcc.Input(value=jsondata['control_i_target'][2], type='number', id='control_i_target2'),
+            ], className='Setupflaechendreier'),
+
+            html.Div([
+                html.H5('Strom diff.'),
+                html.Label('L1'),
+                dcc.Input(value=jsondata['control_i_delta'][0], type='number', id='control_i_delta0'),
+                html.Label('L2'),
+                dcc.Input(value=jsondata['control_i_delta'][1], type='number', id='control_i_delta1'),
+                html.Label('L3'),
+                dcc.Input(value=jsondata['control_i_delta'][2], type='number', id='control_i_delta2'),
+            ], className='Setupflaechendreier')
+        ]),
+    ], className='Setupflaechenzweier'),
+
     # Achsenauswahlfelder
-
+    html.H2('Anzeige', style={'clear': 'both'}),
     html.Div([
         html.Label('Achse links'),
         dcc.Dropdown(
@@ -80,7 +106,7 @@ app.layout = html.Div([
         ),
     ], className='Achsenwahlfeld_links'),
     html.Div([
-        html.Label('Achse Rechts'),
+        html.Label('Achse rechts'),
         dcc.Dropdown(
             id='Achse-rechts',
             options=[{'label': Tabelle[0], 'value': Tabelle[0]} for Tabelle in Alle_Tabellen],
@@ -102,7 +128,7 @@ app.layout = html.Div([
     ], className='PrimaerGraph'),
     dcc.Interval(
         id='interval-update_Alle_Tabellen',
-        interval=10 * 1000,  # in milliseconds -> alle 10 s
+        interval=60 * 1000,  # in milliseconds -> alle 10 s
         n_intervals=0
     ),
     dcc.Interval(
@@ -217,6 +243,7 @@ def update_main_graph(n_intervals, Axlinks, ReiheL, Axrechts, ReiheR):
         Dataquery = pd.read_sql_query("select time, {} from {};" .format(ReiheL, Axlinks), db)
         xdata1 = Dataquery['time']
         ydata1 = Dataquery[ReiheL]
+        db.close()
     else:
         xdata1 = []
         ydata1 = []
@@ -225,9 +252,11 @@ def update_main_graph(n_intervals, Axlinks, ReiheL, Axrechts, ReiheR):
         Dataquery = pd.read_sql_query("select time, {} from {};" .format(ReiheR, Axrechts), db)
         xdata2 = Dataquery['time']
         ydata2 = Dataquery[ReiheR]
+        db.close()
     else:
         xdata2 = []
         ydata2 = []
+
     trace1 = go.Scatter(
         x=xdata1,
         y=ydata1,
@@ -244,10 +273,10 @@ def update_main_graph(n_intervals, Axlinks, ReiheL, Axrechts, ReiheR):
     layout = go.Layout(
         showlegend=False,
         yaxis=dict(
-            title='yaxis title'
+            title=Axlinks
         ),
         yaxis2=dict(
-            title='yaxis2 title',
+            title=Axrechts,
             titlefont=dict(
                 color='rgb(148, 103, 189)'
             ),
@@ -271,8 +300,10 @@ def update_date_dropdown_right(Tabellenname):
         db = sqlite3.connect("./hochstrom.db")
         Dataqery = pd.read_sql_query("select * from {};" .format(Tabellenname), db)
         data = Dataqery.to_dict("rows")
+        db.close()
     else:
         data = []
+
     return data
 
 
@@ -285,6 +316,7 @@ def update_date_dropdown_left(n_clicks):
     cursor = db.cursor()
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
     Alle_Tabellen = cursor.fetchall()
+    db.close()
     return [{'label': Tabelle[0], 'value': Tabelle[0]} for Tabelle in Alle_Tabellen]
 
 
@@ -297,6 +329,7 @@ def update_date_dropdown_left(n_clicks):
     cursor = db.cursor()
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
     Alle_Tabellen = cursor.fetchall()
+    db.close()
     return [{'label': Tabelle[0], 'value': Tabelle[0]} for Tabelle in Alle_Tabellen]
 
 
@@ -309,6 +342,7 @@ def update_date_dropdown_right(n_clicks):
     cursor = db.cursor()
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
     Alle_Tabellen = cursor.fetchall()
+    db.close()
     return [{'label': Tabelle[0], 'value': Tabelle[0]} for Tabelle in Alle_Tabellen]
 
 
@@ -318,6 +352,7 @@ if __name__ == '__main__':
     cursor = db.cursor()
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
     Alle_Tabellen = cursor.fetchall()
+    db.close()
  #   for Tabelle in Alle_Tabellen:
  #       print(Tabelle[0])
     app.run_server(debug=True)  # , host='0.0.0.0')

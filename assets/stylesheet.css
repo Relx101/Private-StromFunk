@@ -12,7 +12,17 @@ body {
 	margin: 0 auto;
 }
 
+.Bildrechts {
+  	width: 100px;
+}
+
+.Titeldiv {
+	clear: bottom;
+
+}
+
 .Achsenwahlfeld_links {
+	clear: both;
 	width: 300px;
 	float: left;
 }
@@ -23,11 +33,15 @@ body {
 }
 
 .PrimaerGraph {
-	margin-top: 150px;
+	margin-top: 200px;
 }
 
-.Setupflaechen {
-	column-count: 5;
+.Setupflaechendreier {
+	float: left;
+	width: 200px;
+	column-count: 1;
+}
+.Setupflaechenzweier {
 }
 
 .Steuerflaechen {
