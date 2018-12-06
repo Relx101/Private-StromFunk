@@ -315,13 +315,14 @@ def update_main_graph(n_intervals, Axlinks, ReiheL, Axrechts, ReiheR, y1min, y1m
     global HauptG_linie1_daten
     global HauptG_linie1_dbname
     global HauptG_linie1_reihe
+    db = sqlite3.connect("./hochstrom.db")
     if (Axlinks != None and ReiheL != None):
         startTime = time.time()  # Debug
         # if(len(HauptG_linie1_daten.time) == 0 or HauptG_linie1_dbname != Axlinks or HauptG_linie1_reihe != ReiheL):  # Wenn keine Daten da sind holne neue oder ander gewünscht sind
         #     HauptG_linie1_dbname = Axlinks
         #     HauptG_linie1_reihe = ReiheL
         #print("{} {} {}".format(len(HauptG_linie1_daten.time), datenpunkte, len(HauptG_linie1_daten.time) != datenpunkte))
-        db = sqlite3.connect("./hochstrom.db")
+
         #Dataquery = pd.read_sql_query("select time, {} from {};" .format(ReiheL, Axlinks), db)
         HauptG_linie1_daten = pd.read_sql_query("select time, {} from {} order by time desc limit {};".format(ReiheL, Axlinks, datenpunkte), db)
         # else:  # Wenn daten da sind hole nur neue und hänge an
@@ -340,26 +341,29 @@ def update_main_graph(n_intervals, Axlinks, ReiheL, Axrechts, ReiheR, y1min, y1m
         #    if(len(HauptG_linie1_daten.time) >= datenpunkte):  # wenn mehr als gewuenscht
         #       print("Lösche zuviel: {}".format(len(HauptG_linie1_daten.time) - datenpunkte))
         #        HauptG_linie1_daten = HauptG_linie1_daten.iloc[:datenpunkte - len(HauptG_linie1_daten.time)]  # loesche die ersten
-        db.close()
+        # db.close()
         xdata1 = HauptG_linie1_daten['time']
         ydata1 = HauptG_linie1_daten[ReiheL]
         # Debug
-        elapsedTime = time.time() - startTime
-        print('finished in {} ms'.format(int(elapsedTime * 1000)))
+
     else:
         xdata1 = []
         ydata1 = []
     if (Axrechts != None and ReiheR != None):
-        db = sqlite3.connect("./hochstrom.db")
+        #db = sqlite3.connect("./hochstrom.db")
         #Dataquery = pd.read_sql_query("select time, {} from {};" .format(ReiheR, Axrechts), db)
+        #startTime = time.time()
         Dataquery = pd.read_sql_query("select time, {} from {} order by time desc limit {};" .format(ReiheR, Axrechts, datenpunkte), db)
+        #elapsedTime = time.time() - startTime
+        #print('finished in {} ms'.format(int(elapsedTime * 1000)))
         xdata2 = Dataquery['time']
         ydata2 = Dataquery[ReiheR]
-        db.close()
+
     else:
         xdata2 = []
         ydata2 = []
 
+    db.close()
     trace1 = go.Scatter(
         x=xdata1,
         y=ydata1,
