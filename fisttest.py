@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import time
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -9,13 +10,23 @@ import plotly.plotly as py
 import plotly.graph_objs as go
 import json
 
-Alle_Tabellen = []
+
 with open('Config.json') as f:
     jsondata = json.load(f)
-
 db = sqlite3.connect("./hochstrom.db")
 INITqery = pd.read_sql_query("select * from abcdefabcdef;", db)
 db.close()
+
+# Globale Variablen
+Alle_Tabellen = []  # Alle Tabellennamen in der DB
+HauptG_linie1_daten = INITqery
+HauptG_linie1_dbname = 'leer'
+HauptG_linie1_reihe = 'leer'
+HauptG_linie2_daten = INITqery
+HauptG_linie2_dbname = 'leer'
+HauptG_linie2_reihe = 'leer'
+#----------------
+
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
@@ -87,7 +98,8 @@ app.layout = html.Div([
     ], className='Setupflaechenzweier'),
 
     # Achsenauswahlfelder
-    html.H2('Anzeige', style={'clear': 'both'}),
+    html.H2('LIVE Daten', style={'clear': 'both'}),
+
     html.Div([
         html.Label('Achse links'),
         dcc.Dropdown(
@@ -104,6 +116,12 @@ app.layout = html.Div([
             ],
             value='v_channel_0'
         ),
+        html.Div([
+            html.Label('y1 min'),
+            dcc.Input(value=0, type='number', id='y1_min'),
+            html.Label('y1 max'),
+            dcc.Input(value=2, type='number', id='y1_max'),
+        ], className='yminmax'),
     ], className='Achsenwahlfeld_links'),
     html.Div([
         html.Label('Achse rechts'),
@@ -121,11 +139,22 @@ app.layout = html.Div([
             ],
             value='v_channel_0',
         ),
-    ], className='Achsenwahlfeld_rechts'),
+        html.Div([
+            html.Label('y2 min'),
+            dcc.Input(value=0, type='number', id='y2_min'),
+            html.Label('y2 max'),
+            dcc.Input(value=2, type='number', id='y2_max'),
+        ], className='yminmax'),
 
+    ], className='Achsenwahlfeld_rechts'),
+    html.Div([
+        html.Label('Anz. Datenpunkte'),
+        dcc.Input(value=100, type='number', id='datenps_Haupt'),
+    ], className='centert'),
     html.Div([
         dcc.Graph(id='maingraph')
     ], className='PrimaerGraph'),
+
     dcc.Interval(
         id='interval-update_Alle_Tabellen',
         interval=60 * 1000,  # in milliseconds -> alle 10 s
@@ -150,7 +179,8 @@ app.layout = html.Div([
             editable=True
         )
     ], className='Tabelle'),
-    html.Div(id='hidden_div', style={'display': 'none'})
+    html.Div(id='hidden_div', style={'display': 'none'}),
+    html.Div(id='hidden_test', style={'display': 'none'})
 ], className='Hauptdiv')
 
 
@@ -229,27 +259,66 @@ def update_json_file_indexed(Wert, Name, index):
 
 
 @app.callback(
+    dash.dependencies.Output('hidden_test', 'title'),
+    [dash.dependencies.Input('maingraph', 'figure')])
+def update_main_graph(test):
+    # print(test)
+    pass
+
+
+@app.callback(
     dash.dependencies.Output('maingraph', 'figure'),
     [dash.dependencies.Input('interval-update-Graph', 'n_intervals'),
      dash.dependencies.Input('Achse-links', 'value'),
      dash.dependencies.Input('Achse-links-Reihe', 'value'),
      dash.dependencies.Input('Achse-rechts', 'value'),
-     dash.dependencies.Input('Achse-rechts-Reihe', 'value')])
-def update_main_graph(n_intervals, Axlinks, ReiheL, Axrechts, ReiheR):
+     dash.dependencies.Input('Achse-rechts-Reihe', 'value'),
+     dash.dependencies.Input('y1_min', 'value'),
+     dash.dependencies.Input('y1_max', 'value'),
+     dash.dependencies.Input('y2_min', 'value'),
+     dash.dependencies.Input('y2_max', 'value'),
+     dash.dependencies.Input('datenps_Haupt', 'value')
+     ])
+def update_main_graph(n_intervals, Axlinks, ReiheL, Axrechts, ReiheR, y1min, y1max, y2min, y2max, datenpunkte):
     # print(len(ReiheR))
     # print(ReiheL)
+    # print('jetzt')
+    global HauptG_linie1_daten
+    global HauptG_linie1_dbname
+    global HauptG_linie1_reihe
     if (Axlinks != None and ReiheL != None):
-        db = sqlite3.connect("./hochstrom.db")
-        Dataquery = pd.read_sql_query("select time, {} from {};" .format(ReiheL, Axlinks), db)
-        xdata1 = Dataquery['time']
-        ydata1 = Dataquery[ReiheL]
+        startTime = time.time()  # Debug
+        if(len(HauptG_linie1_daten.time) == 0 or HauptG_linie1_dbname != Axlinks or HauptG_linie1_reihe != ReiheL):  # Wenn keine Daten da sind holne neue oder ander gewünscht sind
+            HauptG_linie1_dbname = Axlinks
+            HauptG_linie1_reihe = ReiheL
+            print("{} {} {}".format(len(HauptG_linie1_daten.time), datenpunkte, len(HauptG_linie1_daten.time) != datenpunkte))
+            db = sqlite3.connect("./hochstrom.db")
+            #Dataquery = pd.read_sql_query("select time, {} from {};" .format(ReiheL, Axlinks), db)
+            HauptG_linie1_daten = pd.read_sql_query("select time, {} from {} order by time desc limit {};" .format(ReiheL, Axlinks, datenpunkte), db)
+        else:  # Wenn daten da sind hole nur neue und hänge an
+            db = sqlite3.connect("./hochstrom.db")
+            print(INITqery.tail(1).time.values[0])
+            Dataquery = pd.read_sql_query("select time, {} from {} where 'time' <=  '{}';".format(ReiheL, Axlinks, INITqery.tail(1).time.values[0]), db)  # schaue nach ob aktuellere Daten da sind als letzter datrenpunkt
+            print(Dataquery)
+            if(len(Dataquery.time) != 0):  # wenn was da ist
+                print("Hänge an")
+                HauptG_linie1_daten.append(Dataquery)  # haenge an
+                if(len(HauptG_linie1_daten.time) >= datenpunkte):  # wenn mehr als gewuenscht
+                    print("Lösche zuviel: {}".format(len(HauptG_linie1_daten.time) - datenpunkte))
+                    HauptG_linie1_daten = HauptG_linie1_daten.iloc[len(HauptG_linie1_daten.time) - datenpunkte:]  # loesche die ersten
         db.close()
+        xdata1 = HauptG_linie1_daten['time']
+        ydata1 = HauptG_linie1_daten[ReiheL]
+        # Debug
+        elapsedTime = time.time() - startTime
+        print('finished in {} ms'.format(int(elapsedTime * 1000)))
     else:
         xdata1 = []
         ydata1 = []
     if (Axrechts != None and ReiheR != None):
         db = sqlite3.connect("./hochstrom.db")
-        Dataquery = pd.read_sql_query("select time, {} from {};" .format(ReiheR, Axrechts), db)
+        #Dataquery = pd.read_sql_query("select time, {} from {};" .format(ReiheR, Axrechts), db)
+        Dataquery = pd.read_sql_query("select time, {} from {} order by time desc limit {};" .format(ReiheR, Axrechts, datenpunkte), db)
         xdata2 = Dataquery['time']
         ydata2 = Dataquery[ReiheR]
         db.close()
@@ -272,11 +341,19 @@ def update_main_graph(n_intervals, Axlinks, ReiheL, Axrechts, ReiheR):
 
     layout = go.Layout(
         showlegend=False,
+        xaxis=dict(
+            fixedrange=True,
+        ),
+
         yaxis=dict(
-            title=Axlinks
+            range=[y1min, y1max],
+            title=Axlinks,
+            fixedrange=True,
         ),
         yaxis2=dict(
+            range=[y2min, y2max],
             title=Axrechts,
+            fixedrange=True,
             titlefont=dict(
                 color='rgb(148, 103, 189)'
             ),

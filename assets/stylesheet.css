@@ -28,12 +28,13 @@ body {
 }
 
 .Achsenwahlfeld_rechts {
+	margin-right: 20px;
 	width: 300px;
 	float: right;
 }
 
 .PrimaerGraph {
-	margin-top: 200px;
+	margin-top: 150px;
 }
 
 .Setupflaechendreier {
@@ -53,4 +54,15 @@ body {
 .Tabelle {
 	width: 	50%;
 	margin: 0 auto;
+}
+
+.yminmax {
+	width: 100%;
+	column-count: 2;
+}
+
+.centert {
+	margin: 0 auto;
+	column-count: 1;
+	width: 10%;
 }
