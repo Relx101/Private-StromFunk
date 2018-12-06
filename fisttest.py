@@ -155,6 +155,35 @@ app.layout = html.Div([
         dcc.Graph(id='maingraph')
     ], className='PrimaerGraph'),
 
+    html.Div([
+        html.Label('Achse links'),
+        dcc.Dropdown(
+            id='Achse-zweitgraph',
+            options=[{'label': Tabelle[0], 'value': Tabelle[0]} for Tabelle in Alle_Tabellen],
+        ), html.Label('Reihe'),
+        dcc.Dropdown(
+            id='Achse-kanal-zweitgraph',
+            options=[
+                {'label': 'Kanal 1', 'value': 'v_channel_0'},
+                {'label': 'Kanal 2', 'value': 'v_channel_1'},
+                {'label': 'Kanal 3', 'value': 'v_channel_2'},
+                {'label': 'Kanal 4', 'value': 'v_channel_3'}
+            ],
+            # value='v_channel_0',
+            multi=True
+        ),
+        html.Div([
+            html.Label('y min'),
+            dcc.Input(value=0, type='number', id='y3_min'),
+            html.Label('y max'),
+            dcc.Input(value=2, type='number', id='y3_max'),
+        ], className='yminmax'),
+    ], className='Achsenwahlfeld_links'),
+
+    html.Div([
+        dcc.Graph(id='zweitgraph')
+    ], className='zweiGraph'),
+
     dcc.Interval(
         id='interval-update_Alle_Tabellen',
         interval=60 * 1000,  # in milliseconds -> alle 10 s
@@ -288,24 +317,29 @@ def update_main_graph(n_intervals, Axlinks, ReiheL, Axrechts, ReiheR, y1min, y1m
     global HauptG_linie1_reihe
     if (Axlinks != None and ReiheL != None):
         startTime = time.time()  # Debug
-        if(len(HauptG_linie1_daten.time) == 0 or HauptG_linie1_dbname != Axlinks or HauptG_linie1_reihe != ReiheL):  # Wenn keine Daten da sind holne neue oder ander gewünscht sind
-            HauptG_linie1_dbname = Axlinks
-            HauptG_linie1_reihe = ReiheL
-            print("{} {} {}".format(len(HauptG_linie1_daten.time), datenpunkte, len(HauptG_linie1_daten.time) != datenpunkte))
-            db = sqlite3.connect("./hochstrom.db")
-            #Dataquery = pd.read_sql_query("select time, {} from {};" .format(ReiheL, Axlinks), db)
-            HauptG_linie1_daten = pd.read_sql_query("select time, {} from {} order by time desc limit {};" .format(ReiheL, Axlinks, datenpunkte), db)
-        else:  # Wenn daten da sind hole nur neue und hänge an
-            db = sqlite3.connect("./hochstrom.db")
-            print(INITqery.tail(1).time.values[0])
-            Dataquery = pd.read_sql_query("select time, {} from {} where 'time' <=  '{}';".format(ReiheL, Axlinks, INITqery.tail(1).time.values[0]), db)  # schaue nach ob aktuellere Daten da sind als letzter datrenpunkt
-            print(Dataquery)
-            if(len(Dataquery.time) != 0):  # wenn was da ist
-                print("Hänge an")
-                HauptG_linie1_daten.append(Dataquery)  # haenge an
-                if(len(HauptG_linie1_daten.time) >= datenpunkte):  # wenn mehr als gewuenscht
-                    print("Lösche zuviel: {}".format(len(HauptG_linie1_daten.time) - datenpunkte))
-                    HauptG_linie1_daten = HauptG_linie1_daten.iloc[len(HauptG_linie1_daten.time) - datenpunkte:]  # loesche die ersten
+        # if(len(HauptG_linie1_daten.time) == 0 or HauptG_linie1_dbname != Axlinks or HauptG_linie1_reihe != ReiheL):  # Wenn keine Daten da sind holne neue oder ander gewünscht sind
+        #     HauptG_linie1_dbname = Axlinks
+        #     HauptG_linie1_reihe = ReiheL
+        #print("{} {} {}".format(len(HauptG_linie1_daten.time), datenpunkte, len(HauptG_linie1_daten.time) != datenpunkte))
+        db = sqlite3.connect("./hochstrom.db")
+        #Dataquery = pd.read_sql_query("select time, {} from {};" .format(ReiheL, Axlinks), db)
+        HauptG_linie1_daten = pd.read_sql_query("select time, {} from {} order by time desc limit {};".format(ReiheL, Axlinks, datenpunkte), db)
+        # else:  # Wenn daten da sind hole nur neue und hänge an
+        #db = sqlite3.connect("./hochstrom.db")
+        # print(HauptG_linie1_daten.head(1).time.values[0])
+        #Dataquery = pd.read_sql_query("select time, {} from {} order by time desc limit {};".format(ReiheL, Axlinks, datenpunkte), db)
+
+        # Dataquery = pd.read_sql_query("select time, {} from {} where 'time' <=  '{}';".format(ReiheL, Axlinks, HauptG_linie1_daten.head(1).time.values[0]), db)  # schaue nach ob aktuellere Daten da sind als letzter datrenpunkt
+        # Dataquery = pd.read_sql_query("select time, {} from {} order by time desc limit 1;".format(ReiheL, Axlinks), db)
+        # print(Dataquery)
+        # if(len(Dataquery.time) != 0):  # wenn was da ist
+        #    print("Hänge an")
+        #    print(HauptG_linie1_daten)
+        #
+        #    HauptG_linie1_daten = pd.concat([Dataquery, HauptG_linie1_daten])  # haenge an
+        #    if(len(HauptG_linie1_daten.time) >= datenpunkte):  # wenn mehr als gewuenscht
+        #       print("Lösche zuviel: {}".format(len(HauptG_linie1_daten.time) - datenpunkte))
+        #        HauptG_linie1_daten = HauptG_linie1_daten.iloc[:datenpunkte - len(HauptG_linie1_daten.time)]  # loesche die ersten
         db.close()
         xdata1 = HauptG_linie1_daten['time']
         ydata1 = HauptG_linie1_daten[ReiheL]
@@ -369,6 +403,79 @@ def update_main_graph(n_intervals, Axlinks, ReiheL, Axrechts, ReiheR, y1min, y1m
 
 
 @app.callback(
+    dash.dependencies.Output('zweitgraph', 'figure'),
+    [dash.dependencies.Input('interval-update-Graph', 'n_intervals'),
+     dash.dependencies.Input('Achse-zweitgraph', 'value'),
+     dash.dependencies.Input('Achse-kanal-zweitgraph', 'value'),
+     dash.dependencies.Input('y3_min', 'value'),
+     dash.dependencies.Input('y3_max', 'value'),
+     dash.dependencies.Input('datenps_Haupt', 'value')
+     ])
+def update_zweit_graph(n_intervals, Ax, Reihe, y3min, y3max, datenpunkte):
+
+    if (Ax != None and Reihe != None):
+        data = []
+        if(len(Reihe) == 1):
+            print("Kommt rein")
+            db = sqlite3.connect("./hochstrom.db")
+            Qerry = pd.read_sql_query("select time, {} from {} order by time desc limit {};".format(Reihe[0], Ax, datenpunkte), db)
+            db.close()
+            xdata = Qerry['time']
+            ydata = Qerry[Reihe[0]]
+            trace = go.Scatter(
+                x=xdata,
+                y=ydata,
+                name=Reihe[0]
+            )
+            data = [trace]
+        else:
+            if(len(Reihe) > 1):
+                for Kanal in Reihe:
+                    db = sqlite3.connect("./hochstrom.db")
+                    Qerry = pd.read_sql_query("select time, {} from {} order by time desc limit {};".format(Kanal, Ax, datenpunkte), db)
+                    db.close()
+                    xdata = Qerry['time']
+                    ydata = Qerry[Kanal]
+                    trace = go.Scatter(
+                        x=xdata,
+                        y=ydata,
+                        name=Kanal
+                    )
+                    data.append(trace)
+            else:
+                xdata = []
+                ydata = []
+                trace = go.Scatter(
+                    x=xdata,
+                    y=ydata,
+                    name='Nix'
+                )
+                data = [trace]
+    else:
+        xdata = []
+        ydata = []
+        trace = go.Scatter(
+            x=xdata,
+            y=ydata,
+            name='Nix'
+        )
+        data = [trace]
+    layout = go.Layout(
+        showlegend=True,
+        xaxis=dict(
+            fixedrange=True,
+        ),
+
+        yaxis=dict(
+            range=[y3min, y3max],
+            title=Ax,
+            fixedrange=True,
+        )
+    )
+    return go.Figure(data=data, layout=layout)
+
+
+@app.callback(
     dash.dependencies.Output('table', 'data'),
     [dash.dependencies.Input('Tabellen_view', 'value')]
 )
@@ -412,6 +519,19 @@ def update_date_dropdown_left(n_clicks):
 
 @app.callback(
     dash.dependencies.Output('Achse-rechts', 'options'),
+    [dash.dependencies.Input('interval-update_Alle_Tabellen', 'n_intervals')]
+)
+def update_date_dropdown_right(n_clicks):
+    db = sqlite3.connect("./hochstrom.db")
+    cursor = db.cursor()
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+    Alle_Tabellen = cursor.fetchall()
+    db.close()
+    return [{'label': Tabelle[0], 'value': Tabelle[0]} for Tabelle in Alle_Tabellen]
+
+
+@app.callback(
+    dash.dependencies.Output('Achse-zweitgraph', 'options'),
     [dash.dependencies.Input('interval-update_Alle_Tabellen', 'n_intervals')]
 )
 def update_date_dropdown_right(n_clicks):
